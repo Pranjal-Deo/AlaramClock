@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alarm Clock App</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .current-time {
+      font-size: 1.5em;
+      margin: 10px 0;
+      color: #333;
+    }
+    #alarm-list {
+      margin-top: 20px;
+    }
+    #alarms {
+      list-style-type: none;
+      padding: 0;
+    }
+    #alarms li {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Alarm Clock Application</h1>
+    <div id="current-time" class="current-time"></div>
+
+    <!-- Tab Links -->
+    <div class="tab">
+      <button class="tablinks" onclick="openTab(event, 'alarm')">Alarm</button>
+      <button class="tablinks" onclick="openTab(event, 'stopwatch')">Stopwatch</button>
+      <button class="tablinks" onclick="openTab(event, 'reminder')">Reminder</button>
+    </div>
+
+    <!-- Alarm Section -->
+    <div id="alarm" class="tabcontent">
+      <h2>Set Alarm</h2>
+      <label for="alarmTime">Alarm Time</label>
+      <input type="datetime-local" id="alarmTime" />
+      <button onclick="setAlarm()">Set Alarm</button>
+      <audio id="alarmTone" src="/alarmsound.mp3" preload="auto"></audio>
+
+      <!-- New div to show previously set alarms -->
+      <div id="alarm-list">
+        <h3>Previously Set Alarms:</h3>
+        <ul id="alarms"></ul>
+      </div>
+    </div>
+
+    <!-- Stopwatch Section -->
+    <div id="stopwatch" class="tabcontent">
+      <h2>Stopwatch</h2>
+      <div id="stopwatch-time">00:00:00</div> <!-- Stopwatch Time Display -->
+      <button class="stopwatch-button" onclick="startStopwatch()">Start</button>
+      <button class="stopwatch-button" onclick="stopStopwatch()">Stop</button>
+      <button class="stopwatch-button" onclick="resetStopwatch()">Reset</button>
+    </div>
+
+    <!-- Reminder Section -->
+    <div id="reminder" class="tabcontent">
+      <h2>Set Reminder</h2>
+      <label for="reminderMessage">Reminder Message</label>
+      <input type="text" id="reminderMessage" placeholder="Enter reminder message" />
+      <label for="reminderTime">Reminder Time</label>
+      <input type="datetime-local" id="reminderTime" />
+      <button onclick="setReminder()">Set Reminder</button>
+    </div>
+  </div>
+
+  <script>
+    // Function to open tabs
+    function openTab(evt, tabName) {
+      var i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(tabName).style.display = "block";
+      evt.currentTarget.className += " active";
+    }
+
+    // Default open Alarm tab
+    document.getElementById("alarm").style.display = "block";
+
+    // Real-time Clock
+    function updateClock() {
+      const now = new Date();
+      const formattedTime = now.toLocaleTimeString(); // Format time as HH:MM:SS
+      document.getElementById('current-time').innerText = `Current Time: ${formattedTime}`;
+    }
+
+    // Update the clock every second
+    setInterval(updateClock, 1000);
+    updateClock(); // Initial call to display the time immediately
+
+    // Stopwatch Logic
+    let stopwatchInterval;
+    let stopwatchTime = 0;
+
+    function formatTime(time) {
+      const hours = Math.floor(time / 3600);
+      const minutes = Math.floor((time % 3600) / 60);
+      const seconds = time % 60;
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function updateStopwatchDisplay() {
+      document.getElementById('stopwatch-time').innerText = formatTime(stopwatchTime);
+    }
+
+    function startStopwatch() {
+      if (!stopwatchInterval) {
+        stopwatchInterval = setInterval(() => {
+          stopwatchTime++;
+          updateStopwatchDisplay();
+        }, 1000);
+      }
+    }
+
+    function stopStopwatch() {
+      clearInterval(stopwatchInterval);
+      stopwatchInterval = null;
+    }
+
+    function resetStopwatch() {
+      stopStopwatch();
+      stopwatchTime = 0;
+      updateStopwatchDisplay();
+    }
+
+    // Alarm Logic
+    let alarmTimeout;
+    let alarms = []; // Array to store alarms
+
+    async function setAlarm() {
+      const alarmTimeInput = document.getElementById('alarmTime').value;
+      const alarmTime = new Date(alarmTimeInput);
+      const now = new Date();
+      const timeToAlarm = alarmTime - now;
+
+      if (timeToAlarm > 0) {
+        // Add the new alarm to the array
+        alarms.push(alarmTime);
+
+        // Create a list item for the new alarm
+        const alarmItem = document.createElement('li');
+        alarmItem.innerText = `Alarm set for: ${alarmTime.toLocaleString()}`;
+        document.getElementById('alarms').appendChild(alarmItem);
+
+        alarmTimeout = setTimeout(async () => {
+          try {
+            const alarmTone = document.getElementById('alarmTone');
+            await alarmTone.play();
+            alert('Alarm ringing!');
+          } catch (error) {
+            console.error("Audio playback failed:", error);
+            alert("Could not play alarm sound. Please check your browser settings.");
+          }
+        }, timeToAlarm);
+        alert('Alarm set successfully!');
+      } else {
+        alert('Please set a future alarm time.');
+      }
+    }
+
+    async function setReminder() {
+      const reminderMessage = document.getElementById('reminderMessage').value;
+      const reminderTime = new Date(document.getElementById('reminderTime').value);
+      const now = new Date();
+      const timeToReminder = reminderTime - now;
+
+      if (reminderMessage && timeToReminder > 0) {
+        setTimeout(() => {
+          alert(reminderMessage);
+        }, timeToReminder);
+        alert('Reminder set successfully!');
+      } else {
+        alert('Please set a valid reminder message and time.');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "alarm-clock-app",
+  "version": "1.0.0",
+  "description": "A Node.js application that features an alarm clock, stopwatch, and reminder functionality.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "alarm",
+    "clock",
+    "stopwatch",
+    "reminder",
+    "node.js"
+  ],
+  "author": "Pranjal Pravin Deo",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1",
+    "node-notifier": "^10.0.1"
+  }
+}
